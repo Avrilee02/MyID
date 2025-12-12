@@ -1,0 +1,856 @@
+import React, { useState, useEffect } from 'react';
+import {
+  User, Shield, Activity, QrCode, Clock,
+  ChevronLeft, Building, Lock, Unlock, Phone,
+  MapPin, AlertTriangle, Share2, Menu, Battery,
+  Wifi, Signal, Home, GraduationCap, Heart, CheckCircle, XCircle, Banknote
+} from 'lucide-react';
+
+
+// Mock Data
+const USER_DATA = {
+  name: "AHMAD BIN ALI",
+  ic: "831212-14-5677",
+  dob: "12 DEC 1983",
+  address: "NO 123, JALAN MERDEKA, 50000 KUALA LUMPUR",
+  bloodType: "O+",
+  allergies: ["Penicillin", "Shellfish"],
+  emergencyContact: { name: "Sarah (Wife)", phone: "012-3456789" },
+  badges: ["Malaysian", "OKU"],
+  status: "ACTIVE"
+};
+
+
+const ACCESS_LOGS = [
+  { id: 1, time: "10:30 AM", org: "Hospital KL", type: "Medical", status: "Approved", icon: Activity, date: "Today" },
+  { id: 2, time: "09:15 AM", org: "RapidKL", type: "Student Status", status: "Approved", icon: GraduationCap, date: "Today" },
+  { id: 3, time: "08:00 AM", org: "You", type: "Welfare View", status: "Personal View", icon: User, date: "Today" },
+  { id: 4, time: "3:45 PM", org: "Unknown Device", type: "Medical", status: "Blocked", icon: AlertTriangle, date: "Yesterday" },
+];
+
+
+// Swapped 3F (was Education) and 2F (was Medical)
+const FLOOR_DATA = {
+  4: { title: "WELFARE", dept: "JKM", color: "bg-orange-500", icon: Heart, access: ["Jabatan Kebajikan Masyarakat (JKM)"] },
+  3: { title: "MEDICAL", dept: "MOH", color: "bg-red-500", icon: Activity, access: ["Hospital KL", "Klinik Kesihatan Cheras"] },
+  2: { title: "EDUCATION", dept: "MOE", color: "bg-blue-500", icon: GraduationCap, access: ["University Malaya"] },
+  1: { title: "BASIC ID", dept: "JPN", color: "bg-slate-700", icon: Shield, access: ["Police (PDRM)", "Banks"] },
+};
+
+
+export default function App() {
+  const [currentScreen, setCurrentScreen] = useState('home');
+  const [selectedFloor, setSelectedFloor] = useState(null);
+  const [isCardFlipped, setIsCardFlipped] = useState(false);
+ 
+  // Navigation Helper
+  const navigateTo = (screen, floor = null) => {
+    window.scrollTo(0,0);
+    setCurrentScreen(screen);
+    if (floor) setSelectedFloor(floor);
+  };
+
+
+  // --- SCREENS ---
+
+
+  // 1. HOME SCREEN
+  const HomeScreen = () => (
+    <div className="flex flex-col min-h-screen bg-slate-50 pb-20">
+      {/* Header */}
+      <header className="bg-white p-6 pb-4 rounded-b-3xl shadow-sm z-10">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center border-2 border-blue-600 overflow-hidden">
+                <User size={32} className="text-blue-600" />
+              </div>
+              <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+            </div>
+            <div>
+              <p className="text-sm text-slate-500">Good morning,</p>
+              <h1 className="text-xl font-bold text-slate-900">Ahmad</h1>
+            </div>
+          </div>
+          <button className="p-2 bg-slate-100 rounded-full hover:bg-slate-200">
+            <Menu size={24} className="text-slate-700" />
+          </button>
+        </div>
+       
+        {/* Badges */}
+        <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
+          <span className="flex items-center px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full border border-yellow-200">
+             <Shield size={12} className="mr-1" /> Malaysian
+          </span>
+          <span className="flex items-center px-3 py-1 bg-orange-100 text-orange-800 text-xs font-semibold rounded-full border border-orange-200">
+            <Activity size={12} className="mr-1" /> OKU
+          </span>
+        </div>
+      </header>
+
+
+      {/* Main Content */}
+      <div className="px-6 py-6 space-y-6">
+       
+        {/* Virtual Smart ID Card Preview - REALISTIC MYKAD STYLE */}
+        <div
+          onClick={() => navigateTo('virtual-id')}
+          className="relative w-full h-56 bg-gradient-to-br from-cyan-100 via-blue-200 to-cyan-100 rounded-xl shadow-xl p-4 text-slate-900 transform transition-transform active:scale-95 cursor-pointer overflow-hidden border border-blue-200 group"
+        >
+           {/* Background Watermark */}
+           <div className="absolute right-0 bottom-0 opacity-20 transform translate-x-10 translate-y-10">
+               {/* Simulating hibiscus/floral pattern with a blurred shape */}
+              <div className="w-48 h-48 bg-blue-500 rounded-full blur-3xl mix-blend-multiply"></div>
+           </div>
+
+
+           {/* Header */}
+           <div className="flex justify-between items-start mb-2 relative z-10">
+              <div className="flex flex-col">
+                 <h3 className="text-[10px] font-bold text-blue-900 tracking-wider uppercase">KAD PENGENALAN</h3>
+                 <h1 className="text-xl font-black text-blue-900 tracking-wide uppercase leading-none">MALAYSIA</h1>
+              </div>
+              <div className="flex items-center gap-2">
+                 <span className="font-bold italic text-blue-800 text-xs">MyKad</span>
+                 <div className="w-8 h-5 rounded shadow-sm border border-white overflow-hidden bg-blue-900 relative">
+                    {/* Simulated Flag using simple colors if image fails */}
+                     <img
+                        src="https://upload.wikimedia.org/wikipedia/commons/6/66/Flag_of_Malaysia.svg"
+                        alt="MY"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {e.target.style.display='none'; e.target.parentElement.style.backgroundColor='#000066'}}
+                     />
+                 </div>
+              </div>
+           </div>
+
+
+           <div className="flex justify-between relative z-10 h-full">
+              {/* Left Column: Chip & Details */}
+              <div className="flex flex-col justify-start w-2/3 pr-2">
+                 {/* Chip */}
+                 <div className="w-10 h-8 bg-yellow-400 rounded-md shadow-md border border-yellow-500/50 mb-3 flex items-center justify-center relative overflow-hidden">
+                    <div className="absolute inset-0 border-2 border-yellow-600/30 rounded-md m-1"></div>
+                    <div className="w-4 h-5 border border-yellow-600/40 rounded-sm grid grid-cols-2"></div>
+                 </div>
+
+
+                 <div className="space-y-1.5">
+                    <div>
+                        <p className="text-[9px] font-bold text-slate-500 uppercase">Nama</p>
+                        <h2 className="font-bold text-slate-900 text-sm leading-tight">{USER_DATA.name}</h2>
+                    </div>
+                    <div>
+                        <p className="text-[9px] font-bold text-slate-500 uppercase">No. Kad Pengenalan</p>
+                        <p className="font-mono text-slate-900 text-sm font-bold">{USER_DATA.ic}</p>
+                    </div>
+                    <div>
+                        <p className="text-[9px] font-bold text-slate-500 uppercase">Alamat</p>
+                        <p className="text-[9px] text-slate-800 leading-tight w-[95%] font-medium">
+                            {USER_DATA.address}
+                        </p>
+                    </div>
+                 </div>
+              </div>
+
+
+              {/* Right Column: Photo */}
+              <div className="w-1/3 flex flex-col items-center mt-2">
+                 <div className="w-24 h-28 bg-slate-200 rounded shadow-md border-2 border-white overflow-hidden relative flex items-center justify-center">
+                     {/* Ghost image behind main photo simulated by background color */}
+                    <div className="absolute inset-0 bg-slate-300"></div>
+                     <User size={64} className="text-slate-500 z-10" />
+                 </div>
+                 <div className="mt-1 text-[8px] font-bold text-blue-900 text-center leading-tight">
+                     WARGANEGARA<br/>MALAYSIA
+                 </div>
+              </div>
+           </div>
+           
+           <div className="absolute bottom-2 right-1/2 translate-x-1/2 flex items-center space-x-1 text-[10px] text-blue-800 opacity-60 group-hover:opacity-100 transition-opacity">
+              <span>Tap for details</span>
+           </div>
+        </div>
+
+
+        {/* Apartment Building Visual */}
+        <div>
+          <div className="flex justify-between items-end mb-3">
+             <h3 className="font-bold text-slate-800">Data Access Control</h3>
+             <span className="text-xs text-blue-600 font-medium cursor-pointer">Manage All</span>
+          </div>
+         
+          <div className="bg-white p-2 rounded-2xl shadow-lg border border-slate-100 relative">
+             {/* Changed absolute positioning from -left-2 to left-2 to move inside */}
+             <div className="absolute left-2 top-0 bottom-0 flex flex-col justify-around py-4">
+                {[4,3,2,1].map(f => (
+                   <span key={f} className="text-xs font-bold text-slate-400 w-6 text-center">{f}F</span>
+                ))}
+             </div>
+
+
+             {/* Increased margin-left from ml-4 to ml-10 to prevent overlap */}
+             <div className="flex flex-col space-y-1 ml-10">
+                {[4,3,2,1].map((floor) => {
+                   const data = FLOOR_DATA[floor];
+                   const Icon = data.icon;
+                   // Logic: 2F is Lock status, others are Unlock status (Swapped from 3F)
+                   const isLocked = floor === 2;
+
+
+                   return (
+                      <div
+                        key={floor}
+                        onClick={() => navigateTo('floor-detail', floor)}
+                        className={`
+                          relative group cursor-pointer
+                          h-14 rounded-xl flex items-center justify-between px-4
+                          transition-all duration-200 hover:shadow-md hover:-translate-y-0.5
+                          border-l-4 border-l-transparent bg-slate-50 hover:bg-white
+                        `}
+                      >
+                         <div className="flex items-center space-x-3">
+                            <div className={`p-2 rounded-lg ${data.color} text-white shadow-sm`}>
+                               <Icon size={16} />
+                            </div>
+                            <div>
+                               {/* Swapped order: Title (Category) on top, Dept (Acronym) below */}
+                               <h4 className="font-bold text-sm text-slate-800">{data.title}</h4>
+                               <p className="text-[10px] text-slate-500 uppercase tracking-wide">{data.dept}</p>
+                            </div>
+                         </div>
+                         
+                         {/* Replaced Avatars with Lock/Unlock Icons - COLORS REVERSED */}
+                         <div>
+                            {isLocked ? (
+                               <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-600 shadow-sm border border-red-200">
+                                  <Lock size={14} />
+                               </div>
+                            ) : (
+                               <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 shadow-sm border border-green-200">
+                                  <Unlock size={14} />
+                               </div>
+                            )}
+                         </div>
+                      </div>
+                   )
+                })}
+             </div>
+          </div>
+        </div>
+
+
+        {/* Quick Actions Bar - Updated to 2 columns, removed Verify */}
+        <div className="grid grid-cols-2 gap-4">
+           <button
+             onClick={() => navigateTo('emergency')}
+             className="flex flex-col items-center justify-center p-4 bg-red-50 rounded-2xl border border-red-100 hover:bg-red-100 transition-colors"
+           >
+              <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-200 mb-2">
+                 <AlertTriangle size={20} className="text-white" />
+              </div>
+              <span className="text-xs font-bold text-red-700">EMERGENCY</span>
+           </button>
+
+
+           <button
+              onClick={() => navigateTo('logs')}
+              className="flex flex-col items-center justify-center p-4 bg-purple-50 rounded-2xl border border-purple-100 hover:bg-purple-100 transition-colors"
+            >
+              <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center shadow-lg shadow-purple-200 mb-2">
+                 <Clock size={20} className="text-white" />
+              </div>
+              <span className="text-xs font-bold text-purple-700">LOGS</span>
+           </button>
+        </div>
+
+
+      </div>
+    </div>
+  );
+
+
+  // 2. VIRTUAL ID SCREEN
+  const VirtualIDScreen = () => {
+    // Add local state for the back card tabs
+    const [activeTab, setActiveTab] = useState('MEDICAL');
+
+
+    return (
+      <div className="min-h-screen bg-slate-100 flex flex-col">
+        <div className="bg-white shadow-sm p-4 flex items-center sticky top-0 z-20">
+          <button onClick={() => navigateTo('home')} className="p-2 -ml-2 text-slate-600">
+            <ChevronLeft size={24} />
+          </button>
+          <h1 className="font-bold text-lg ml-2">Virtual ID Wallet</h1>
+        </div>
+
+
+        <div className="flex-1 p-6 flex flex-col items-center pt-10">
+           
+           {/* 3D Flip Container - Using Inline Styles for Reliability */}
+           <div
+             className="w-full max-w-sm aspect-[1.586/1] cursor-pointer group"
+             onClick={() => setIsCardFlipped(!isCardFlipped)}
+             style={{ perspective: '1000px' }}
+           >
+              <div
+                className="relative w-full h-full duration-700"
+                style={{
+                  transformStyle: 'preserve-3d',
+                  transition: 'transform 0.7s',
+                  transform: isCardFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
+                }}
+              >
+                 
+                 {/* FRONT - Realistic MyKad Style */}
+                 <div
+                    className="absolute w-full h-full"
+                    style={{
+                        backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden',
+                        // Control Z-Index to prevent click-through
+                        zIndex: isCardFlipped ? 0 : 10
+                    }}
+                 >
+                    <div className="w-full h-full bg-gradient-to-br from-cyan-100 via-blue-200 to-cyan-100 rounded-2xl shadow-2xl p-4 text-slate-900 relative overflow-hidden border border-blue-200">
+                       {/* Background Watermark */}
+                       <div className="absolute right-0 bottom-0 opacity-20 transform translate-x-10 translate-y-10">
+                          <div className="w-48 h-48 bg-blue-500 rounded-full blur-3xl mix-blend-multiply"></div>
+                       </div>
+                       
+                       {/* Header */}
+                       <div className="flex justify-between items-start mb-4 relative z-10">
+                         <div className="flex flex-col">
+                           <h3 className="text-[10px] font-bold text-blue-900 tracking-wider uppercase">KAD PENGENALAN</h3>
+                           <h1 className="text-xl font-black text-blue-900 tracking-wide uppercase leading-none">MALAYSIA</h1>
+                         </div>
+                         <div className="flex items-center gap-2">
+                           <span className="font-bold italic text-blue-800 text-xs">MyKad</span>
+                           <div className="w-8 h-5 rounded shadow-sm border border-white overflow-hidden bg-blue-900">
+                              <img
+                                src="https://upload.wikimedia.org/wikipedia/commons/6/66/Flag_of_Malaysia.svg"
+                                alt="MY"
+                                className="w-full h-full object-cover"
+                              />
+                           </div>
+                         </div>
+                       </div>
+
+
+                       <div className="flex justify-between relative z-10">
+                          {/* Left Column */}
+                          <div className="flex flex-col justify-start w-2/3 pr-2">
+                             <div className="w-10 h-8 bg-yellow-400 rounded-md shadow-md border border-yellow-500/50 mb-3 flex items-center justify-center relative overflow-hidden">
+                                <div className="absolute inset-0 border-2 border-yellow-600/30 rounded-md m-1"></div>
+                                <div className="w-4 h-5 border border-yellow-600/40 rounded-sm grid grid-cols-2"></div>
+                             </div>
+
+
+                             <div className="space-y-2">
+                                <div>
+                                    <p className="text-[9px] font-bold text-slate-500 uppercase">Nama</p>
+                                    <h2 className="font-bold text-slate-900 text-sm leading-tight">{USER_DATA.name}</h2>
+                                </div>
+                                <div>
+                                    <p className="text-[9px] font-bold text-slate-500 uppercase">No. Kad Pengenalan</p>
+                                    <p className="font-mono text-slate-900 text-sm font-bold">{USER_DATA.ic}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[9px] font-bold text-slate-500 uppercase">Alamat</p>
+                                    <p className="text-[9px] text-slate-800 leading-tight w-[95%] font-medium">
+                                        {USER_DATA.address}
+                                    </p>
+                                </div>
+                             </div>
+                          </div>
+
+
+                          {/* Right Column */}
+                          <div className="w-1/3 flex flex-col items-center mt-2">
+                             <div className="w-24 h-28 bg-slate-200 rounded shadow-md border-2 border-white overflow-hidden relative flex items-center justify-center">
+                                {/* 3D Elderly Man Avatar */}
+                                <div className="absolute inset-0 bg-slate-300"></div>
+                                <User size={64} className="text-slate-500 z-10" />
+                             </div>
+                             <div className="mt-1 text-[8px] font-bold text-blue-900 text-center leading-tight">
+                                 WARGANEGARA<br/>MALAYSIA
+                             </div>
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+
+
+                 {/* BACK - Interactive Tabs */}
+                 <div
+                    className="absolute w-full h-full"
+                    onClick={(e) => e.stopPropagation()} // PREVENT FLIPPING WHEN CLICKING BACK CONTENT
+                    style={{
+                        backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden',
+                        transform: 'rotateY(180deg)',
+                        // Control Z-Index to prevent click-through
+                        zIndex: isCardFlipped ? 10 : 0
+                    }}
+                 >
+                    <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-slate-200">
+                       {/* Tabs */}
+                       <div className="flex border-b border-slate-100 bg-slate-50">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setActiveTab('MEDICAL'); }}
+                            className={`flex-1 py-3 text-xs font-bold text-center transition-colors ${activeTab === 'MEDICAL' ? 'bg-white text-blue-700 border-b-2 border-blue-600' : 'text-slate-400 hover:bg-slate-100'}`}
+                          >
+                            MEDICAL
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setActiveTab('STATUS'); }}
+                            className={`flex-1 py-3 text-xs font-bold text-center transition-colors ${activeTab === 'STATUS' ? 'bg-white text-blue-700 border-b-2 border-blue-600' : 'text-slate-400 hover:bg-slate-100'}`}
+                          >
+                            STATUS
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setActiveTab('WELFARE'); }}
+                            className={`flex-1 py-3 text-xs font-bold text-center transition-colors ${activeTab === 'WELFARE' ? 'bg-white text-blue-700 border-b-2 border-blue-600' : 'text-slate-400 hover:bg-slate-100'}`}
+                          >
+                            WELFARE
+                          </button>
+                       </div>
+                       
+                       {/* Content - Conditional Rendering */}
+                       <div className="p-5 flex-1 bg-white">
+                         
+                          {/* MEDICAL TAB */}
+                          {activeTab === 'MEDICAL' && (
+                            <div className="space-y-4">
+                              <div className="bg-slate-50 p-3 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center">
+                                  <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-red-100 text-red-600 rounded-lg">
+                                        <Activity size={18} />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-500">Blood Type</p>
+                                        <p className="font-bold text-slate-800 text-lg">{USER_DATA.bloodType}</p>
+                                    </div>
+                                  </div>
+                              </div>
+
+
+                              <div className="bg-slate-50 p-3 rounded-xl shadow-sm border border-slate-100">
+                                  <p className="text-xs text-slate-500 mb-2">Allergies</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {USER_DATA.allergies.map(a => (
+                                        <span key={a} className="px-2 py-1 bg-red-50 text-red-700 text-xs rounded-md border border-red-100 font-medium">
+                                          {a}
+                                        </span>
+                                    ))}
+                                  </div>
+                              </div>
+                             
+                              <div className="bg-slate-50 p-3 rounded-xl shadow-sm border border-slate-100">
+                                  <p className="text-xs text-slate-500 mb-1">Emergency Contact</p>
+                                  <p className="font-bold text-sm">{USER_DATA.emergencyContact.name}</p>
+                                  <p className="text-sm text-blue-600 font-mono">{USER_DATA.emergencyContact.phone}</p>
+                              </div>
+                            </div>
+                          )}
+
+
+                          {/* STATUS TAB */}
+                          {activeTab === 'STATUS' && (
+                            <div className="space-y-4">
+                                <div className="bg-slate-50 p-3 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
+                                            <Activity size={18} />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-slate-500">Demographic Group</p>
+                                            <p className="font-bold text-slate-800 text-sm">OKU (Person with Disabilities)</p>
+                                        </div>
+                                    </div>
+                                    <CheckCircle size={16} className="text-green-500" />
+                                </div>
+
+
+                                <div className="bg-slate-50 p-3 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-pink-100 text-pink-600 rounded-lg">
+                                            <Heart size={18} />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-slate-500">Marital Status</p>
+                                            <p className="font-bold text-slate-800 text-sm">Married</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                          )}
+
+
+                          {/* WELFARE TAB */}
+                          {activeTab === 'WELFARE' && (
+                            <div className="space-y-3">
+                                <div className="bg-slate-50 p-3 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
+                                            <Heart size={18} />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-slate-500">Active Program</p>
+                                            <p className="font-bold text-slate-800 text-sm leading-tight">Bantuan Sara Hidup (BSH)</p>
+                                        </div>
+                                    </div>
+                                    <span className="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-full">Eligible</span>
+                                </div>
+
+
+                                <div className="bg-slate-50 p-3 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center">
+                                    <div>
+                                        <p className="text-xs text-slate-500">Next Payment</p>
+                                        <p className="font-bold text-slate-800 text-sm">October 2025</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-xs text-slate-500">Amount</p>
+                                        <p className="font-bold text-slate-800 text-sm">RM 300.00</p>
+                                    </div>
+                                </div>
+                            </div>
+                          )}
+
+
+                       </div>
+                    </div>
+                 </div>
+
+
+              </div>
+           </div>
+
+
+           <p className="mt-8 text-slate-400 text-sm flex items-center animate-bounce">
+              <Share2 size={16} className="mr-2" />
+              Tap card to flip
+           </p>
+
+
+           <div className="mt-8 w-full max-w-sm">
+              <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 flex items-center justify-between">
+                 <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-100 text-green-700 rounded-full">
+                       <Lock size={18} />
+                    </div>
+                    <div>
+                       <p className="text-sm font-bold text-slate-800">Security Status</p>
+                       <p className="text-xs text-green-600">Encrypted & Verified</p>
+                    </div>
+                 </div>
+                 <span className="text-xs text-slate-400">Synced: 10:30 AM</span>
+              </div>
+           </div>
+        </div>
+      </div>
+    );
+  };
+
+
+  // 3. EMERGENCY SCREEN
+  const EmergencyScreen = () => (
+    <div className="min-h-screen bg-red-600 flex flex-col text-white">
+      <div className="p-4 flex items-center">
+        <button onClick={() => navigateTo('home')} className="p-2 -ml-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full">
+          <ChevronLeft size={28} />
+        </button>
+        <span className="ml-2 font-bold tracking-widest text-white/80 text-sm">EMERGENCY MODE</span>
+      </div>
+
+
+      <div className="flex-1 flex flex-col items-center px-6 pt-4 pb-10">
+         <div className="w-full bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <div className="bg-red-50 p-6 flex flex-col items-center border-b border-red-100">
+               <div className="w-24 h-24 bg-slate-200 rounded-full border-4 border-white shadow-lg mb-4 flex items-center justify-center overflow-hidden">
+                 <User size={48} className="text-slate-400" />
+               </div>
+               <h1 className="text-2xl font-bold text-slate-900">{USER_DATA.name}</h1>
+               <p className="text-slate-500 font-mono">{USER_DATA.ic}</p>
+            </div>
+
+
+            <div className="p-6 space-y-6">
+               <div className="flex gap-4">
+                  <div className="flex-1 bg-red-50 rounded-2xl p-4 border border-red-100 flex flex-col items-center justify-center">
+                     <span className="text-xs font-bold text-red-400 uppercase tracking-wide">Blood</span>
+                     <span className="text-4xl font-black text-red-600 mt-1">{USER_DATA.bloodType}</span>
+                  </div>
+                  <div className="flex-1 bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wide">Allergies</span>
+                     <ul className="mt-2 space-y-1">
+                        {USER_DATA.allergies.map(a => (
+                           <li key={a} className="flex items-center text-sm font-bold text-slate-800">
+                              <AlertTriangle size={12} className="text-orange-500 mr-2" />
+                              {a}
+                           </li>
+                        ))}
+                     </ul>
+                  </div>
+               </div>
+
+
+               <div className="space-y-3">
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wide ml-1">Emergency Contacts</h3>
+                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                     <div>
+                        <p className="font-bold text-slate-900">{USER_DATA.emergencyContact.name}</p>
+                        <p className="text-sm text-slate-500">{USER_DATA.emergencyContact.phone}</p>
+                     </div>
+                     <button className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shadow-lg shadow-green-200 active:scale-95 transition-transform">
+                        <Phone size={20} className="text-white" />
+                     </button>
+                  </div>
+                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                     <div>
+                        <p className="font-bold text-slate-900">Dr. Lim (Clinic)</p>
+                        <p className="text-sm text-slate-500">03-12345678</p>
+                     </div>
+                     <button className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shadow-lg shadow-green-200 active:scale-95 transition-transform">
+                        <Phone size={20} className="text-white" />
+                     </button>
+                  </div>
+               </div>
+            </div>
+         </div>
+         
+         <div className="mt-6 flex gap-4 w-full">
+            <button className="flex-1 bg-white text-red-600 font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2">
+               <MapPin size={20} />
+               Share Loc
+            </button>
+            <button className="flex-1 bg-red-800 text-white font-bold py-4 rounded-2xl shadow-lg border border-red-700 active:scale-95 transition-transform flex items-center justify-center gap-2 animate-pulse">
+               <Phone size={20} />
+               Call 999
+            </button>
+         </div>
+      </div>
+    </div>
+  );
+
+
+  // 5. FLOOR DETAIL SCREEN
+  const FloorDetailScreen = () => {
+    const floor = FLOOR_DATA[selectedFloor];
+    const FloorIcon = floor.icon;
+    const [generatedCode, setGeneratedCode] = useState(null);
+
+
+    const handleGenerateCode = () => {
+      const code = `${floor.dept}-${Math.floor(1000 + Math.random() * 9000)}`;
+      setGeneratedCode(code);
+    };
+
+
+    useEffect(() => {
+        setGeneratedCode(null);
+    }, [selectedFloor]);
+
+
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col">
+         {/* Custom Header based on floor color */}
+         <div className={`${floor.color} p-6 pb-12 text-white relative shadow-md transition-colors duration-300`}>
+            <div className="flex items-center mb-6">
+               <button onClick={() => navigateTo('home')} className="p-2 -ml-2 hover:bg-white/20 rounded-full">
+                  <ChevronLeft size={24} />
+               </button>
+               <span className="font-bold ml-2">FLOOR {selectedFloor}: {floor.title}</span>
+            </div>
+            <div className="flex items-center justify-between">
+               <div>
+                  <h1 className="text-3xl font-bold">{floor.dept}</h1>
+                  <p className="opacity-80 text-sm mt-1">Encrypted Database Segment</p>
+               </div>
+               <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                  <FloorIcon size={32} />
+               </div>
+            </div>
+         </div>
+
+
+         {/* Changed -mt-6 to -mt-2 to move the section down a bit */}
+         <div className="-mt-2 px-6 pb-20 space-y-6">
+            {/* Status Card */}
+            <div className="bg-white p-4 rounded-xl shadow-lg flex items-center justify-between">
+               <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                     <Lock size={20} />
+                  </div>
+                  <div>
+                     <p className="text-sm font-bold text-slate-800">Protection Active</p>
+                     <p className="text-xs text-slate-500">Only authorized access</p>
+                  </div>
+               </div>
+               <button className="text-xs font-bold text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg">Log</button>
+            </div>
+
+
+            {/* Access List */}
+            <div>
+               <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-3 ml-1">Who has access</h3>
+               <div className="space-y-3">
+                  {floor.access.map((org, idx) => (
+                     <div key={idx} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                           <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold text-xs text-slate-600">
+                              {org.charAt(0)}
+                           </div>
+                           <div>
+                              <p className="font-bold text-sm text-slate-800">{org}</p>
+                              <p className="text-xs text-slate-400">Last accessed: Today</p>
+                           </div>
+                        </div>
+                        <button className="text-xs font-bold text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors">
+                           Revoke
+                        </button>
+                     </div>
+                  ))}
+               </div>
+            </div>
+
+
+            {/* Grant Access Form */}
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+               <h3 className="font-bold text-slate-800 mb-4">Grant New Access</h3>
+               <div className="flex gap-2 mb-4">
+                  <span className="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg shadow-sm">1 Hour</span>
+                  <span className="px-3 py-1.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg">1 Day</span>
+                  <span className="px-3 py-1.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg">1 Month</span>
+               </div>
+               <input
+                  type="text"
+                  placeholder="Purpose (e.g., Checkup)"
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+               />
+               <button
+                  onClick={handleGenerateCode}
+                  className="w-full py-3 bg-slate-900 text-white font-bold rounded-xl text-sm shadow-lg active:scale-95 transition-transform"
+               >
+                  {generatedCode ? "Regenerate Code" : "Generate Access Code"}
+               </button>
+
+
+               {/* Generated QR Code Section */}
+               {generatedCode && (
+                 <div className="mt-6 flex flex-col items-center p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div className="bg-white p-2 rounded-lg border border-slate-200 mb-2">
+                        <QrCode size={100} className="text-slate-900" />
+                    </div>
+                    <p className="font-mono text-xl font-bold text-slate-800 tracking-wider">{generatedCode}</p>
+                    <p className="text-xs text-slate-500 mt-1">Valid for 5 minutes</p>
+                 </div>
+               )}
+            </div>
+         </div>
+      </div>
+    );
+  };
+
+
+  // 6. LOGS SCREEN
+  const LogsScreen = () => (
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <div className="bg-white p-4 flex items-center shadow-sm sticky top-0 z-10">
+        <button onClick={() => navigateTo('home')} className="p-2 -ml-2 text-slate-600">
+          <ChevronLeft size={24} />
+        </button>
+        <h1 className="font-bold text-lg ml-2">Access History</h1>
+      </div>
+
+
+      <div className="p-6">
+         {/* Stats */}
+         <div className="flex gap-4 mb-8">
+            <div className="flex-1 bg-blue-600 rounded-xl p-4 text-white shadow-lg shadow-blue-200">
+               <p className="text-2xl font-bold">12</p>
+               <p className="text-xs opacity-80">Approvals</p>
+            </div>
+            <div className="flex-1 bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
+               <p className="text-2xl font-bold text-red-500">1</p>
+               <p className="text-xs text-slate-500">Blocked</p>
+            </div>
+         </div>
+
+
+         {/* Timeline */}
+         <div className="relative border-l-2 border-slate-200 ml-3 space-y-8 pb-10">
+            {ACCESS_LOGS.map((log) => {
+               const LogIcon = log.icon;
+               const isBlocked = log.status === "Blocked";
+               
+               return (
+                  <div key={log.id} className="relative pl-8">
+                     {/* Dot */}
+                     <div className={`
+                        absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 border-white shadow-sm
+                        ${isBlocked ? 'bg-red-500' : 'bg-blue-500'}
+                     `}></div>
+                     
+                     <div className="flex flex-col">
+                        <span className="text-xs font-bold text-slate-400 mb-1">{log.time} · {log.date}</span>
+                        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-start gap-3">
+                           <div className={`p-2 rounded-lg ${isBlocked ? 'bg-red-100 text-red-600' : 'bg-blue-50 text-blue-600'}`}>
+                              <LogIcon size={18} />
+                           </div>
+                           <div className="flex-1">
+                              <div className="flex justify-between items-start">
+                                 <h4 className="font-bold text-slate-800 text-sm">{log.org}</h4>
+                                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isBlocked ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}`}>
+                                    {isBlocked ? 'DENIED' : 'OK'}
+                                 </span>
+                              </div>
+                              <p className="text-xs text-slate-500 mt-0.5">{log.type}</p>
+                              <p className="text-xs text-slate-400 mt-2 flex items-center gap-1">
+                                 {isBlocked ? <XCircle size={12} /> : <CheckCircle size={12} />}
+                                 {log.status}
+                              </p>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               )
+            })}
+         </div>
+      </div>
+    </div>
+  );
+
+
+  // --- RENDER SWITCH ---
+  const renderScreen = () => {
+    switch(currentScreen) {
+      case 'home': return <HomeScreen />;
+      case 'virtual-id': return <VirtualIDScreen />;
+      case 'emergency': return <EmergencyScreen />;
+      // case 'verify': return <VerificationScreen />; // Removed
+      case 'floor-detail': return <FloorDetailScreen />;
+      case 'logs': return <LogsScreen />;
+      default: return <HomeScreen />;
+    }
+  };
+
+
+  return (
+    <div className="font-sans antialiased text-slate-900 max-w-md mx-auto bg-slate-50 min-h-screen relative overflow-hidden shadow-2xl">
+      {/* Top Status Bar Mockup */}
+      <div className="absolute top-0 w-full h-8 flex justify-between items-center px-4 text-[10px] font-bold z-50 pointer-events-none mix-blend-multiply">
+         <span>9:41</span>
+         <div className="flex items-center space-x-1">
+            <Signal size={12} />
+            <Wifi size={12} />
+            <Battery size={12} />
+         </div>
+      </div>
+     
+      {renderScreen()}
+    </div>
+  );
+}
+
